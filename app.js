@@ -149,7 +149,7 @@ function loadSettings() {
   const broker = localStorage.getItem(storagePrefix + 'broker');
   const topic = localStorage.getItem(storagePrefix + 'topic');
   const username = localStorage.getItem(storagePrefix + 'username');
-  
+
   if (broker) brokerInput.value = broker;
   if (topic) topicInput.value = topic;
   if (username) usernameInput.value = username;
@@ -182,7 +182,7 @@ function parseMqttUrl(inputUrl) {
   if (protocolMatch) {
     const proto = protocolMatch[1].toLowerCase();
     hostAndPort = protocolMatch[2];
-    
+
     if (proto === 'mqtt' || proto === 'tcp' || proto === 'ws') {
       protocol = 'ws';
     } else if (proto === 'mqtts' || proto === 'ssl' || proto === 'wss') {
@@ -358,11 +358,11 @@ function processIncomingGPS(payloadData, receivedTopic = '') {
 
   // Normalize MQTT payload wrappers and stray quoting from different broker clients
   if ((payloadString.startsWith("b'") && payloadString.endsWith("'")) ||
-      (payloadString.startsWith('b"') && payloadString.endsWith('"'))) {
+    (payloadString.startsWith('b"') && payloadString.endsWith('"'))) {
     payloadString = payloadString.slice(2, -1);
   }
   if ((payloadString.startsWith('"') && payloadString.endsWith('"')) ||
-      (payloadString.startsWith("'") && payloadString.endsWith("'"))) {
+    (payloadString.startsWith("'") && payloadString.endsWith("'"))) {
     payloadString = payloadString.slice(1, -1);
   }
 
@@ -378,10 +378,10 @@ function processIncomingGPS(payloadData, receivedTopic = '') {
     if (typeof data === 'string') {
       data = JSON.parse(data);
     }
-    
+
     // Determine device ID - try multiple possible field names
     let deviceId = data.device_id || data.tid || data._id || data.id;
-    
+
     // If device ID is not in the payload, try to extract from topic
     if (!deviceId && receivedTopic) {
       const parts = receivedTopic.split('/');
@@ -403,7 +403,7 @@ function processIncomingGPS(payloadData, receivedTopic = '') {
     // Extract coordinates - handle both 'lat/lon' and 'latitude/longitude'
     let lat = parseFloat(data.lat || data.latitude);
     let lng = parseFloat(data.lon || data.longitude);
-    
+
     // If lat/lon are in arrays or nested objects, try to extract
     if (isNaN(lat) && data.location && Array.isArray(data.location)) {
       lat = parseFloat(data.location[0]);
@@ -613,7 +613,7 @@ function updateSidebar() {
 
   sortedDevices.forEach(dev => {
     const elapsedSec = Math.floor((now - dev.lastActiveTime) / 1000);
-    
+
     let statusClass = 'active';
     let statusText = 'Active';
     if (elapsedSec > 300) { // 5 mins
@@ -631,7 +631,7 @@ function updateSidebar() {
     const isSelected = selectedDeviceId === dev.deviceId ? 'selected' : '';
     const rssiText = dev.rssi !== undefined ? `<i data-lucide="wifi" style="width: 10px; height: 10px;"></i> ${dev.rssi} dBm` : '';
     const batteryText = dev.battery !== undefined ? `<i data-lucide="battery" style="width: 10px; height: 10px;"></i> ${dev.battery}%` : '';
-    
+
     let timeStr = 'Just now';
     if (elapsedSec >= 60) {
       timeStr = `${Math.floor(elapsedSec / 60)}m ago`;
@@ -696,12 +696,12 @@ function haversineDistance(pt1, pt2) {
   const R = 6371; // Earth's Radius in km
   const dLat = (pt2.lat - pt1.lat) * Math.PI / 180;
   const dLng = (pt2.lng - pt1.lng) * Math.PI / 180;
-  
-  const a = 
+
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(pt1.lat * Math.PI / 180) * Math.cos(pt2.lat * Math.PI / 180) * 
+    Math.cos(pt1.lat * Math.PI / 180) * Math.cos(pt2.lat * Math.PI / 180) *
     Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    
+
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -802,7 +802,7 @@ function startSimulator() {
     simDevices.forEach(simDev => {
       const driftLat = (Math.random() - 0.5) * 0.0004;
       const driftLng = (Math.random() - 0.5) * 0.0004;
-      
+
       simDev.lat += driftLat;
       simDev.lng += driftLng;
 
