@@ -1,4 +1,4 @@
-# ESP32 GPS Tracker + Leaflet MQTT Map
+# owntracks GPS Tracker + Leaflet MQTT Map
 
 A lightweight real-time GPS tracking dashboard built with Leaflet and MQTT over WebSockets, paired with an ESP32 sketch that publishes location telemetry.
 
