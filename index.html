@@ -202,9 +202,35 @@
       
       <!-- HUD Overlay Controls -->
       <div class="map-hud">
-        <!-- <button id="hud-dark-mode" class="hud-btn active" title="Toggle Dark Map Style">
-          <i data-lucide="moon"></i>
-        </button> -->
+        <!-- Map Layers Selector -->
+        <div class="hud-layer-container">
+          <button id="hud-layers-btn" class="hud-btn" title="Select Map Layer">
+            <i data-lucide="layers"></i>
+          </button>
+          <div id="hud-layers-menu" class="hud-layers-menu">
+            <div class="hud-layers-header">Select Map Layer</div>
+            <div class="hud-layer-option" data-layer="dark">
+              <div class="layer-preview dark-preview"></div>
+              <span class="layer-name">Dark Matter</span>
+            </div>
+            <div class="hud-layer-option" data-layer="light">
+              <div class="layer-preview light-preview"></div>
+              <span class="layer-name">Light Positron</span>
+            </div>
+            <div class="hud-layer-option" data-layer="streets">
+              <div class="layer-preview streets-preview"></div>
+              <span class="layer-name">OSM Streets</span>
+            </div>
+            <div class="hud-layer-option" data-layer="satellite">
+              <div class="layer-preview satellite-preview"></div>
+              <span class="layer-name">Satellite</span>
+            </div>
+            <div class="hud-layer-option" data-layer="topo">
+              <div class="layer-preview topo-preview"></div>
+              <span class="layer-name">Topography</span>
+            </div>
+          </div>
+        </div>
         <button id="hud-pan-active" class="hud-btn active" title="Lock / Auto-pan to Target">
           <i data-lucide="crosshair"></i>
         </button>

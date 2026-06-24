@@ -32,15 +32,28 @@ const defaultLng = 88.3639;
 const storagePrefix = "esp32_gps_";
 
 // Map Tile Layers
-const streetTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '© OpenStreetMap contributors'
-});
-
-const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  maxZoom: 20,
-  attribution: '© OpenStreetMap contributors, © CartoDB'
-});
+const mapLayers = {
+  dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 20,
+    attribution: '© OpenStreetMap contributors, © CartoDB'
+  }),
+  light: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 20,
+    attribution: '© OpenStreetMap contributors, © CartoDB'
+  }),
+  streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors'
+  }),
+  satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+  }),
+  topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    maxZoom: 17,
+    attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)'
+  })
+};
 
 // UI Elements
 const connPill = document.getElementById('connection-pill');
@@ -59,7 +72,9 @@ const valUpdates = document.getElementById('val-updates');
 const valTime = document.getElementById('val-time');
 const payloadDisplay = document.getElementById('payload-display');
 
-const hudDarkMode = document.getElementById('hud-dark-mode');
+let hudLayersBtn;
+let hudLayersMenu;
+let layerOptions;
 const hudPanActive = document.getElementById('hud-pan-active');
 const hudClearPath = document.getElementById('hud-clear-path');
 
@@ -75,7 +90,7 @@ const copyCodeBtn = document.getElementById('copy-code-btn');
 const arduinoCodeElement = document.getElementById('esp32-arduino-code');
 
 // HUD State
-let isDarkMode = true;
+let currentLayerKey = 'dark';
 let isPanActive = true;
 
 // Simulator State
@@ -89,6 +104,9 @@ window.addEventListener('DOMContentLoaded', () => {
   deviceListContainer = document.getElementById('device-list');
   deviceCountElement = document.getElementById('device-count');
   selectedDeviceText = document.getElementById('selected-device-id');
+  hudLayersBtn = document.getElementById('hud-layers-btn');
+  hudLayersMenu = document.getElementById('hud-layers-menu');
+  layerOptions = document.querySelectorAll('.hud-layer-option');
 
   // Initialize Lucide Icons
   lucide.createIcons();
@@ -101,7 +119,30 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Bind Buttons & Events
   connectBtn.addEventListener('click', toggleConnection);
-  if (hudDarkMode) hudDarkMode.addEventListener('click', toggleDarkMode);
+  
+  if (hudLayersBtn) {
+    hudLayersBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hudLayersMenu.classList.toggle('show');
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (hudLayersMenu && !hudLayersMenu.contains(e.target) && e.target !== hudLayersBtn) {
+      hudLayersMenu.classList.remove('show');
+    }
+  });
+
+  if (layerOptions) {
+    layerOptions.forEach(opt => {
+      opt.addEventListener('click', () => {
+        const layerKey = opt.getAttribute('data-layer');
+        switchMapLayer(layerKey);
+        hudLayersMenu.classList.remove('show');
+      });
+    });
+  }
+
   hudPanActive.addEventListener('click', togglePanActive);
   hudClearPath.addEventListener('click', clearPathHistory);
 
@@ -123,10 +164,18 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Setup Leaflet Map
 function initMap() {
+  // Load active layer from storage, default to 'dark'
+  const savedLayer = localStorage.getItem(storagePrefix + 'active_layer');
+  if (savedLayer && mapLayers[savedLayer]) {
+    currentLayerKey = savedLayer;
+  } else {
+    currentLayerKey = 'dark';
+  }
+
   // Centered initially at defaults
   map = L.map('map', {
     zoomControl: true,
-    layers: [darkTiles] // Default is Dark Mode
+    layers: [mapLayers[currentLayerKey]]
   }).setView([defaultLat, defaultLng], 13);
 
   // Initialize Marker Cluster Group
@@ -136,6 +185,9 @@ function initMap() {
     zoomToBoundsOnClick: true,
     maxClusterRadius: 40
   }).addTo(map);
+
+  // Update layer selector UI elements to reflect active layer
+  updateLayerUIActiveState();
 }
 
 // Save/Load Settings
@@ -707,17 +759,28 @@ function haversineDistance(pt1, pt2) {
 }
 
 // HUD Controls Functions
-function toggleDarkMode() {
-  isDarkMode = !isDarkMode;
-  if (isDarkMode) {
-    map.removeLayer(streetTiles);
-    map.addLayer(darkTiles);
-    hudDarkMode.classList.add('active');
-  } else {
-    map.removeLayer(darkTiles);
-    map.addLayer(streetTiles);
-    hudDarkMode.classList.remove('active');
-  }
+function switchMapLayer(layerKey) {
+  if (!mapLayers[layerKey] || layerKey === currentLayerKey) return;
+
+  map.removeLayer(mapLayers[currentLayerKey]);
+  map.addLayer(mapLayers[layerKey]);
+  currentLayerKey = layerKey;
+
+  // Persist the choice to local storage
+  localStorage.setItem(storagePrefix + 'active_layer', currentLayerKey);
+
+  updateLayerUIActiveState();
+}
+
+function updateLayerUIActiveState() {
+  if (!layerOptions) return;
+  layerOptions.forEach(opt => {
+    if (opt.getAttribute('data-layer') === currentLayerKey) {
+      opt.classList.add('active');
+    } else {
+      opt.classList.remove('active');
+    }
+  });
 }
 
 // HUD Pan Active Function
