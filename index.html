@@ -26,6 +26,8 @@
 <body>
 
   <div class="app-container">
+    <!-- Sidebar Backdrop for Mobile Drawer -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
     
     <!-- Left Sidebar -->
     <aside class="sidebar">
@@ -471,12 +473,38 @@ void loop() {
       const toggleIcon = document.getElementById('sidebar-toggle-icon');
       const appContainer = document.querySelector('.app-container');
       const sidebar = document.querySelector('.sidebar');
-      let hidden = false;
+      const backdrop = document.getElementById('sidebar-backdrop');
+
+      function checkMobile() {
+        return window.innerWidth <= 992;
+      }
+
+      // Initial state: collapse sidebar on mobile dynamically
+      let hidden = checkMobile();
+
+      if (hidden) {
+        sidebar.classList.add('sidebar-hidden');
+        appContainer.classList.add('sidebar-collapsed');
+        toggleIcon.setAttribute('data-lucide', 'chevrons-right');
+      } else {
+        toggleIcon.setAttribute('data-lucide', 'chevrons-left');
+      }
+      lucide.createIcons();
 
       toggleBtn.addEventListener('click', function () {
         hidden = !hidden;
         sidebar.classList.toggle('sidebar-hidden', hidden);
         appContainer.classList.toggle('sidebar-collapsed', hidden);
+        
+        // Show/hide backdrop overlay on mobile
+        if (backdrop && checkMobile()) {
+          if (hidden) {
+            backdrop.classList.remove('active');
+          } else {
+            backdrop.classList.add('active');
+          }
+        }
+        
         // Swap chevron direction
         toggleIcon.setAttribute('data-lucide', hidden ? 'chevrons-right' : 'chevrons-left');
         lucide.createIcons();
@@ -484,6 +512,28 @@ void loop() {
         setTimeout(function () {
           if (typeof map !== 'undefined' && map) map.invalidateSize();
         }, 350);
+      });
+
+      // Close sidebar when clicking backdrop on mobile
+      if (backdrop) {
+        backdrop.addEventListener('click', function () {
+          hidden = true;
+          sidebar.classList.add('sidebar-hidden');
+          appContainer.classList.add('sidebar-collapsed');
+          backdrop.classList.remove('active');
+          toggleIcon.setAttribute('data-lucide', 'chevrons-right');
+          lucide.createIcons();
+          setTimeout(function () {
+            if (typeof map !== 'undefined' && map) map.invalidateSize();
+          }, 350);
+        });
+      }
+
+      // Remove backdrop if window is resized back to desktop
+      window.addEventListener('resize', function() {
+        if (!checkMobile() && backdrop) {
+          backdrop.classList.remove('active');
+        }
       });
     })();
 </script>

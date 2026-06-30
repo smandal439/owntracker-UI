@@ -21,6 +21,7 @@
   --font-sans: 'Outfit', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-width: 420px;
 }
 
 * {
@@ -77,10 +78,30 @@ body {
 /* App Container Layout */
 .app-container {
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: var(--sidebar-width) 1fr;
   height: 100vh;
   width: 100vw;
   position: relative;
+}
+
+/* Sidebar Backdrop for Mobile Drawer */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(3, 7, 18, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Sidebar Styling */
@@ -896,21 +917,104 @@ input:focus {
 
 /* Responsive Overrides */
 @media (max-width: 992px) {
+  :root {
+    --sidebar-width: 320px;
+  }
+
   .app-container {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    display: block;
+    position: relative;
+    width: 100vw;
     height: 100vh;
+    overflow: hidden;
   }
-  
+
   .sidebar {
-    height: auto;
-    max-height: 50vh;
-    border-right: none;
-    border-bottom: 1px solid var(--card-border);
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    max-width: 85vw;
+    height: 100%;
+    z-index: 1000;
+    border-right: 1px solid var(--card-border);
+    border-bottom: none;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar.sidebar-hidden {
+    transform: translateX(-100%) !important;
+    width: var(--sidebar-width) !important;
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
+  .map-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+
+  .sidebar-toggle-tab {
+    left: 0;
+    z-index: 1001; /* Stays above map and backdrop */
+    transition: left 0.32s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  /* When the sidebar is NOT hidden, position the toggle button at the sidebar's edge */
+  .app-container:not(.sidebar-collapsed) .sidebar-toggle-tab {
+    left: min(var(--sidebar-width), 85vw);
+  }
+
+  /* Adjust sidebar content padding and spacing for mobile */
+  .sidebar-header {
+    padding: 16px 20px;
   }
   
-  .map-container {
-    height: 100%;
+  .sidebar-header h1 {
+    font-size: 18px;
+  }
+
+  .sidebar-content {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .telemetry-grid {
+    gap: 8px;
+  }
+
+  .telemetry-item {
+    padding: 8px 10px;
+  }
+
+  /* Modal responsiveness updates */
+  .modal-container {
+    width: 95%;
+    max-height: 90vh;
+    border-radius: 16px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .code-block {
+    font-size: 11px;
+    padding: 12px;
+    max-height: 300px;
   }
 }
 
